@@ -4,7 +4,7 @@ import (
 	"sort"
 	"testing"
 
-	lib "quantime.ai/go-priority-queue/lib/pq"
+	lib "github.com/quantime/go-priorityqueue/lib/pq"
 )
 
 func TestPriorityQueue(t *testing.T) {
