@@ -1,3 +1,3 @@
-module quantime.ai/go-priority-queue
+module quantime.ai/go-priorityqueue
 
 go 1.15
