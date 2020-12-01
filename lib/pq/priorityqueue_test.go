@@ -96,3 +96,15 @@ func TestUpdateNonExistingItem(t *testing.T) {
 		t.Fatalf("update should not overwrite item, expected \"foo\", got \"%v\"", item.(string))
 	}
 }
+
+func TestMaxSize(t *testing.T) {
+	pq := lib.NewWithMaxSize(3)
+	pq.Insert("foo", 1)
+	pq.Insert("bar", 2)
+	pq.Insert("baz", 3)
+	pq.Insert("bat", 1)
+
+	if pq.Len() != 3 {
+		t.Fatal("max size violated")
+	}
+}
