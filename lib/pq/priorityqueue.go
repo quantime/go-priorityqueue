@@ -15,6 +15,7 @@ import (
 type PriorityQueue struct {
 	itemHeap *itemHeap
 	lookup   map[interface{}]*item
+	maxSize  int
 }
 
 // New initializes an empty priority queue.
@@ -22,6 +23,15 @@ func New() PriorityQueue {
 	return PriorityQueue{
 		itemHeap: &itemHeap{},
 		lookup:   make(map[interface{}]*item),
+		maxSize:  -1,
+	}
+}
+
+func NewWithMaxSize(maxSize int) PriorityQueue {
+	return PriorityQueue{
+		itemHeap: &itemHeap{},
+		lookup:   make(map[interface{}]*item),
+		maxSize:  maxSize,
 	}
 }
 
@@ -43,6 +53,10 @@ func (p *PriorityQueue) Insert(v interface{}, priority float64) {
 	}
 	heap.Push(p.itemHeap, newItem)
 	p.lookup[v] = newItem
+
+	if p.maxSize > 0 && p.Len() > p.maxSize {
+		p.popEnd()
+	}
 }
 
 // Pop removes the element with the highest priority from the queue and returns it.
@@ -53,6 +67,16 @@ func (p *PriorityQueue) Pop() (interface{}, error) {
 	}
 
 	item := heap.Pop(p.itemHeap).(*item)
+	delete(p.lookup, item.value)
+	return item.value, nil
+}
+
+func (p *PriorityQueue) popEnd() (interface{}, error) {
+	if len(*p.itemHeap) == 0 {
+		return nil, errors.New("empty queue")
+	}
+
+	item := heap.Remove(p.itemHeap, p.Len()-1).(*item)
 	delete(p.lookup, item.value)
 	return item.value, nil
 }
