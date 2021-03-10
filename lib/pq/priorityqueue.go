@@ -14,15 +14,19 @@ import (
 // PriorityQueue represents the queue
 type PriorityQueue struct {
 	itemHeap *itemHeap
-	lookup   map[interface{}]*item
+	lookup   map[Queuable]*item
 	maxSize  int
+}
+
+type Queuable interface {
+	Clean()
 }
 
 // New initializes an empty priority queue.
 func New() PriorityQueue {
 	return PriorityQueue{
 		itemHeap: &itemHeap{},
-		lookup:   make(map[interface{}]*item),
+		lookup:   make(map[Queuable]*item),
 		maxSize:  -1,
 	}
 }
@@ -30,7 +34,7 @@ func New() PriorityQueue {
 func NewWithMaxSize(maxSize int) PriorityQueue {
 	return PriorityQueue{
 		itemHeap: &itemHeap{},
-		lookup:   make(map[interface{}]*item),
+		lookup:   make(map[Queuable]*item),
 		maxSize:  maxSize,
 	}
 }
@@ -41,7 +45,7 @@ func (p *PriorityQueue) Len() int {
 }
 
 // Insert inserts a new element into the queue. No action is performed on duplicate elements.
-func (p *PriorityQueue) Insert(v interface{}, priority float64) {
+func (p *PriorityQueue) Insert(v Queuable, priority float64) {
 	_, ok := p.lookup[v]
 	if ok {
 		return
@@ -51,17 +55,22 @@ func (p *PriorityQueue) Insert(v interface{}, priority float64) {
 		value:    v,
 		priority: priority,
 	}
+
 	heap.Push(p.itemHeap, newItem)
 	p.lookup[v] = newItem
 
 	if p.maxSize > 0 && p.Len() > p.maxSize {
-		p.popEnd()
+		old, _ := p.popEnd()
+
+		if old != nil {
+			old.Clean()
+		}
 	}
 }
 
 // Pop removes the element with the highest priority from the queue and returns it.
 // In case of an empty queue, an error is returned.
-func (p *PriorityQueue) Pop() (interface{}, error) {
+func (p *PriorityQueue) Pop() (Queuable, error) {
 	if len(*p.itemHeap) == 0 {
 		return nil, errors.New("empty queue")
 	}
@@ -71,7 +80,7 @@ func (p *PriorityQueue) Pop() (interface{}, error) {
 	return item.value, nil
 }
 
-func (p *PriorityQueue) popEnd() (interface{}, error) {
+func (p *PriorityQueue) popEnd() (Queuable, error) {
 	if len(*p.itemHeap) == 0 {
 		return nil, errors.New("empty queue")
 	}
@@ -83,7 +92,7 @@ func (p *PriorityQueue) popEnd() (interface{}, error) {
 
 // UpdatePriority changes the priority of a given item.
 // If the specified item is not present in the queue, no action is performed.
-func (p *PriorityQueue) UpdatePriority(x interface{}, newPriority float64) {
+func (p *PriorityQueue) UpdatePriority(x Queuable, newPriority float64) {
 	item, ok := p.lookup[x]
 	if !ok {
 		return
@@ -96,7 +105,7 @@ func (p *PriorityQueue) UpdatePriority(x interface{}, newPriority float64) {
 type itemHeap []*item
 
 type item struct {
-	value    interface{}
+	value    Queuable
 	priority float64
 	index    int
 }
