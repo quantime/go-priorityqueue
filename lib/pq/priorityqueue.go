@@ -45,15 +45,16 @@ func (p *PriorityQueue) Len() int {
 }
 
 // Insert inserts a new element into the queue. No action is performed on duplicate elements.
-func (p *PriorityQueue) Insert(v Queuable, priority float64) {
+func (p *PriorityQueue) Insert(v Queuable, priority, secondaryPrio float64) {
 	_, ok := p.lookup[v]
 	if ok {
 		return
 	}
 
 	newItem := &item{
-		value:    v,
-		priority: priority,
+		value:         v,
+		priority:      priority,
+		secondaryPrio: secondaryPrio,
 	}
 
 	heap.Push(p.itemHeap, newItem)
@@ -105,9 +106,10 @@ func (p *PriorityQueue) UpdatePriority(x Queuable, newPriority float64) {
 type itemHeap []*item
 
 type item struct {
-	value    Queuable
-	priority float64
-	index    int
+	value         Queuable
+	priority      float64
+	secondaryPrio float64
+	index         int
 }
 
 func (ih *itemHeap) Len() int {
@@ -115,6 +117,10 @@ func (ih *itemHeap) Len() int {
 }
 
 func (ih *itemHeap) Less(i, j int) bool {
+	if (*ih)[i].priority == (*ih)[j].priority {
+		return (*ih)[i].secondaryPrio < (*ih)[j].secondaryPrio
+	}
+
 	return (*ih)[i].priority < (*ih)[j].priority
 }
 
